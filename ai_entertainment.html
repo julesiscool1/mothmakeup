@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Entertainment Hub</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --background-color: #ecf0f1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--primary-color);
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .tab-button {
+            padding: 10px 20px;
+            margin: 0 5px;
+            border: none;
+            background-color: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .tab-button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .tab-button.active {
+            background-color: var(--secondary-color);
+        }
+
+        .content-section {
+            display: none;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        /* Riddle and Joke Styles */
+        .output-box {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            min-height: 100px;
+        }
+
+        .button-primary {
+            padding: 10px 20px;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .button-primary:hover {
+            background-color: #2980b9;
+        }
+
+        /* Number Guessing Game Styles */
+        .guess-input {
+            padding: 10px;
+            margin: 10px 0;
+            width: 100%;
+            max-width: 200px;
+        }
+
+        /* Snake Game Styles */
+        #gameCanvas {
+            border: 2px solid var(--primary-color);
+            background-color: #fff;
+        }
+
+        /* Wordle Styles */
+        .wordle-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            max-width: 350px;
+            margin: 20px auto;
+        }
+
+        .wordle-cell {
+            aspect-ratio: 1;
+            border: 2px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .keyboard {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 5px;
+            max-width: 500px;
+            margin: 20px auto;
+        }
+
+        .key {
+            padding: 10px;
+            background-color: #d3d6da;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .correct {
+            background-color: #6aaa64;
+            color: white;
+        }
+
+        .present {
+            background-color: #c9b458;
+            color: white;
+        }
+
+        .absent {
+            background-color: #787c7e;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AI Entertainment Hub</h1>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-button active" data-tab="riddles">Riddles</button>
+            <button class="tab-button" data-tab="jokes">Jokes</button>
+            <button class="tab-button" data-tab="number-guess">Number Guess</button>
+            <button class="tab-button" data-tab="snake">Snake</button>
+            <button class="tab-button" data-tab="wordle">Wordle</button>
+        </div>
+
+        <!-- Riddles Section -->
+        <div id="riddles" class="content-section active">
+            <h2>Riddle Generator</h2>
+            <div class="output-box" id="riddle-output"></div>
+            <button class="button-primary" onclick="generateRiddle()">Generate Riddle</button>
+        </div>
+
+        <!-- Jokes Section -->
+        <div id="jokes" class="content-section">
+            <h2>Joke Generator</h2>
+            <div class="output-box" id="joke-output"></div>
+            <button class="button-primary" onclick="generateJoke()">Generate Joke</button>
+        </div>
+
+        <!-- Number Guessing Game Section -->
+        <div id="number-guess" class="content-section">
+            <h2>Number Guessing Game</h2>
+            <p>Guess a number between 1 and 100:</p>
+            <input type="number" class="guess-input" id="guess-input">
+            <button class="button-primary" onclick="checkGuess()">Submit Guess</button>
+            <div class="output-box" id="guess-output"></div>
+        </div>
+
+        <!-- Snake Game Section -->
+        <div id="snake" class="content-section">
+            <h2>Snake Game</h2>
+            <canvas id="gameCanvas" width="400" height="400"></canvas>
+            <button class="button-primary" onclick="startSnakeGame()">Start Game</button>
+        </div>
+
+        <!-- Wordle Section -->
+        <div id="wordle" class="content-section">
+            <h2>Wordle Clone</h2>
+            <div class="wordle-grid" id="wordle-grid"></div>
+            <div class="keyboard" id="keyboard"></div>
+        </div>
+    </div>
+
+    <script>
+        // Tab Switching Logic
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
+                
+                button.classList.add('active');
+                document.getElementById(button.dataset.tab).classList.add('active');
+
+                if (button.dataset.tab === 'snake') {
+                    startSnakeGame();
+                }
+            });
+        });
+
+        // Riddle Generator
+        const riddles = [
+            { question: "I speak without a mouth and hear without ears. I have no body, but I come alive with wind. What am I?", answer: "An echo" },
+            { question: "What has keys, but no locks; space, but no room; and you can enter, but not go in?", answer: "A keyboard" },
+            { question: "The more you take, the more you leave behind. What am I?", answer: "Footsteps" },
+            { question: "What has a head and a tail that will never meet?", answer: "A coin" },
+            { question: "What has cities, but no houses; forests, but no trees; and rivers, but no water?", answer: "A map" }
+        ];
+
+        function generateRiddle() {
+            const riddle = riddles[Math.floor(Math.random() * riddles.length)];
+            const output = document.getElementById('riddle-output');
+            output.innerHTML = `
+                <p><strong>Question:</strong> ${riddle.question}</p>
+                <p><strong>Answer:</strong> <span style="color: transparent" onclick="this.style.color='inherit'">${riddle.answer}</span></p>
+                <small>(Click the blank space to reveal the answer)</small>
+            `;
+        }
+
+        // Joke Generator
+        const jokes = [
+            { setup: "Why don't programmers like nature?", punchline: "It has too many bugs!" },
+            { setup: "What do you call a bear with no teeth?", punchline: "A gummy bear!" },
+            { setup: "Why did the scarecrow win an award?", punchline: "Because he was outstanding in his field!" },
+            { setup: "What do you call a fish wearing a bowtie?", punchline: "So-fish-ticated!" },
+            { setup: "What did the grape say when it got stepped on?", punchline: "Nothing, it just let out a little wine!" }
+        ];
+
+        function generateJoke() {
+            const joke = jokes[Math.floor(Math.random() * jokes.length)];
+            const output = document.getElementById('joke-output');
+            output.innerHTML = `
+                <p><strong>Setup:</strong> ${joke.setup}</p>
+                <p><strong>Punchline:</strong> <span style="color: transparent" onclick="this.style.color='inherit'">${joke.punchline}</span></p>
+                <small>(Click the blank space to reveal the punchline)</small>
+            `;
+        }
+
+        // Number Guessing Game
+        let targetNumber = Math.floor(Math.random() * 100) + 1;
+        let attempts = 0;
+
+        function checkGuess() {
+            const guess = parseInt(document.getElementById('guess-input').value);
+            const output = document.getElementById('guess-output');
+            attempts++;
+
+            if (isNaN(guess)) {
+                output.textContent = "Please enter a valid number!";
+                return;
+            }
+
+            if (guess === targetNumber) {
+                output.textContent = `Congratulations! You found the number in ${attempts} attempts!`;
+                targetNumber = Math.floor(Math.random() * 100) + 1;
+                attempts = 0;
+            } else if (guess < targetNumber) {
+                output.textContent = "Too low! Try again.";
+            } else {
+                output.textContent = "Too high! Try again.";
+            }
+        }
+
+        // Snake Game
+        let snake = [];
+        let food = {};
+        let direction = 'right';
+        let gameLoop = null;
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gridSize = 20;
+        const gridWidth = canvas.width / gridSize;
+        const gridHeight = canvas.height / gridSize;
+
+        function startSnakeGame() {
+            if (gameLoop) clearInterval(gameLoop);
+            
+            snake = [
+                {x: 5, y: 5},
+                {x: 4, y: 5},
+                {x: 3, y: 5}
+            ];
+            
+            direction = 'right';
+            generateFood();
+            gameLoop = setInterval(updateGame, 100);
+        }
+
+        function generateFood() {
+            food = {
+                x: Math.floor(Math.random() * gridWidth),
+                y: Math.floor(Math.random() * gridHeight)
+            };
+        }
+
+        function updateGame() {
+            const head = {x: snake[0].x, y: snake[0].y};
+
+            switch(direction) {
+                case 'up': head.y--; break;
+                case 'down': head.y++; break;
+                case 'left': head.x--; break;
+                case 'right': head.x++; break;
+            }
+
+            if (head.x < 0 || head.x >= gridWidth || 
+                head.y < 0 || head.y >= gridHeight || 
+                snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+                clearInterval(gameLoop);
+                alert('Game Over!');
+                return;
+            }
+
+            snake.unshift(head);
+
+            if (head.x === food.x && head.y === food.y) {
+                generateFood();
+            } else {
+                snake.pop();
+            }
+
+            // Draw
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw snake
+            ctx.fillStyle = '#3498db';
+            snake.forEach(segment => {
+                ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 1, gridSize - 1);
+            });
+
+            // Draw food
+            ctx.fillStyle = '#e74c3c';
+            ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 1, gridSize - 1);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case 'ArrowUp': if (direction !== 'down') direction = 'up'; break;
+                case 'ArrowDown': if (direction !== 'up') direction = 'down'; break;
+                case 'ArrowLeft': if (direction !== 'right') direction = 'left'; break;
+                case 'ArrowRight': if (direction !== 'left') direction = 'right'; break;
+            }
+        });
+
+        // Wordle Clone
+        const WORD_LENGTH = 5;
+        const MAX_GUESSES = 6;
+        let targetWord = '';
+        let currentGuess = '';
+        let guesses = [];
+        let currentRow = 0;
+
+        const wordList = [
+            'APPLE', 'BEACH', 'CHAIR', 'DANCE', 'EAGLE', 'FLAME',
+            'GRAPE', 'HOUSE', 'IMAGE', 'JUICE', 'KNIFE', 'LEMON'
+        ];
+
+        function initializeWordle() {
+            const grid = document.getElementById('wordle-grid');
+            grid.innerHTML = '';
+            
+            // Create grid cells
+            for (let i = 0; i < MAX_GUESSES; i++) {
+                for (let j = 0; j < WORD_LENGTH; j++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('wordle-cell');
+                    grid.appendChild(cell);
+                }
+            }
+
+            // Create keyboard
+            const keyboard = document.getElementById('keyboard');
+            keyboard.innerHTML = '';
+            'QWERTYUIOPASDFGHJKLZXCVBNM'.split('').forEach(letter => {
+                const key = document.createElement('button');
+                key.textContent = letter;
+                key.classList.add('key');
+                key.onclick = () => handleKeyPress(letter);
+                keyboard.appendChild(key);
+            });
+
+            // Add backspace and enter keys
+            const backspace = document.createElement('button');
+            backspace.textContent = '←';
+            backspace.classList.add('key');
+            backspace.onclick = () => handleKeyPress('Backspace');
+            keyboard.appendChild(backspace);
+
+            const enter = document.createElement('button');
+            enter.textContent = 'Enter';
+            enter.classList.add('key');
+            enter.onclick = () => handleKeyPress('Enter');
+            keyboard.appendChild(enter);
+
+            // Initialize game
+            targetWord = wordList[Math.floor(Math.random() * wordList.length)];
+            currentGuess = '';
+            guesses = [];
+            currentRow = 0;
+            updateDisplay();
+        }
+
+        function handleKeyPress(key) {
+            if (currentRow >= MAX_GUESSES) return;
+
+            if (key === 'Backspace') {
+                currentGuess = currentGuess.slice(0, -1);
+            } else if (key === 'Enter' && currentGuess.length === WORD_LENGTH) {
+                submitGuess();
+            } else if (key.length === 1 && currentGuess.length < WORD_LENGTH) {
+                currentGuess += key;
+            }
+
+            updateDisplay();
+        }
+
+        function submitGuess() {
+            if (currentGuess.length !== WORD_LENGTH) return;
+
+            guesses.push(currentGuess);
+            
+            // Check if won
+            if (currentGuess === targetWord) {
+                alert('Congratulations! You won!');
+                return;
+            }
+
+            // Check if lost
+            if (currentRow === MAX_GUESSES - 1) {
+                alert(`Game Over! The word was ${targetWord}`);
+                return;
+            }
+
+            currentRow++;
+            currentGuess = '';
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            const cells = document.querySelectorAll('.wordle-cell');
+            
+            // Update previous guesses
+            guesses.forEach((guess, row) => {
+                for (let i = 0; i < WORD_LENGTH; i++) {
+                    const cell = cells[row * WORD_LENGTH + i];
+                    cell.textContent = guess[i];
+                    
+                    if (guess[i] === targetWord[i]) {
+                        cell.classList.add('correct');
+                    } else if (targetWord.includes(guess[i])) {
+                        cell.classList.add('present');
+                    } else {
+                        cell.classList.add('absent');
+                    }
+                }
+            });
+
+            // Update current guess
+            for (let i = 0; i < WORD_LENGTH; i++) {
+                const cell = cells[currentRow * WORD_LENGTH + i];
+                cell.textContent = currentGuess[i] || '';
+            }
+        }
+
+        // Initialize Wordle when the tab is selected
+        document.querySelector('[data-tab="wordle"]').addEventListener('click', initializeWordle);
+
+        // Initialize the first riddle
+        generateRiddle();
+    </script>
+</body>
+</html> 
